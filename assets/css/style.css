@@ -1,0 +1,143 @@
+/* RESET styles are assumed to be in a separate reset.css file */
+
+body {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1%;
+  background-color: #13293d; /* Dark Blue */
+  color: #fff;
+}
+
+/* Change font size of headings */
+h1 {
+  font-size: 200%;
+}
+
+/* Change the margin */
+h2 {
+  margin: 2% 0;
+  font-size: 150%;
+  color: #13293d; /* Match header color for consistency */
+}
+
+/* --- MAIN APPLICATION LAYOUT --- */
+main {
+  display: flex;
+  flex: 1 1 0;
+  max-width: 1200px;
+  margin: 2% auto;
+  padding: 0 1%;
+  flex-direction: column; /* Stacks the two main sections (real-time and historical) */
+  width: 100%;
+}
+
+/* --- REAL-TIME DATA SECTION (#real-time-data) --- */
+#real-time-data {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap; 
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid #d8a47f; /* Separator */
+}
+
+/* Styling for individual data displays/cards */
+.data-card {
+  flex: 1 1 45%; 
+  min-width: 250px; 
+  background-color: #f4f4f4; /* Light gray background */
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.data-card h2 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  color: #13293d;
+}
+
+.data-value {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: #3b82f6; /* Primary accent color (Blue) */
+}
+
+/* --- ALERT BOX STYLING --- */
+.alert-box {
+  width: 100%; 
+  margin-top: 20px;
+  padding: 15px;
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  border-radius: 8px;
+  background-color: #ffeccf; /* Neutral/Pending state color (Light Orange) */
+  color: #333;
+  transition: background-color 0.5s ease; /* Smooth transition for alerts */
+}
+
+/* Specific classes added by JavaScript based on dominance threshold */
+.alert-box.buy-altcoins {
+  background-color: #ef4444; /* Red/Alert color */
+  color: white;
+}
+.alert-box.buy-bitcoin {
+  background-color: #10b981; /* Green/Actionable color */
+  color: white;
+}
+
+/* --- HISTORICAL DATA SECTION (#historical-data) --- */
+#historical-data {
+  padding: 20px 0;
+}
+
+.chart-container {
+  width: 100%;
+  max-height: 400px; 
+  margin: 20px 0;
+}
+
+.note {
+    font-style: italic;
+    text-align: right;
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* --- FOOTER --- */
+footer {
+  display: flex;
+  justify-content: center;
+  padding: 2%;
+  background-color: #13293d;
+  color: #fff;
+}
+
+
+/* --- RESPONSIVENESS (Media Query) --- */
+@media screen and (max-width: 768px) {
+  header,
+  main {
+    flex-direction: column;
+  }
+
+  /* Stack the data cards vertically on small screens */
+  #real-time-data {
+    flex-direction: column; 
+    gap: 15px;
+  }
+
+  .data-card {
+    min-width: 90%; 
+    flex: 1 1 auto;
+  }
+}

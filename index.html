@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crypto Dominance Tracker</title>
+    <link rel="stylesheet" href="./assets/css/reset.css" />
+    <link rel="stylesheet" href="./assets/css/style.css" />
+  </head>
+
+  <body>
+    <header>
+      <h1>₿ Crypto Dominance Tracker</h1>
+      </header>
+
+    <main>
+      <section id="real-time-data">
+        <article class="data-card">
+          <h2>Current Bitcoin Price</h2>
+          <div id="btc-price-display" class="data-value">
+            Loading...
+          </div>
+        </article>
+
+        <article class="data-card">
+          <h2>Bitcoin Dominance (%)</h2>
+          <div id="btc-dominance-display" class="data-value">
+            Loading...
+          </div>
+        </article>
+
+        <div id="dominance-alert" class="alert-box">
+          Awaiting Data...
+        </div>
+      </section>
+
+      <section id="historical-data">
+        <h2>Bitcoin Dominance Chart</h2>
+        <div class="chart-container">
+          <canvas id="dominanceChart"></canvas>
+        </div>
+        
+        <p class="note">Historical data provided by CoinGecko API.</p>
+      </section>
+
+      </main>
+
+    <footer>
+      <span>
+        Built with CoinGecko API for Solo Front-End Project | &copy; 2025
+      </span>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./assets/js/script.js"></script>
+  </body>
+</html>
+
+<!-- 
+#003f5c
+#2f4b7c
+#665191
+#a05195
+#d45087
+#f95d6a
+#ff7c43
+#ffa600 -->
+
