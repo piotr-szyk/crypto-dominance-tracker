@@ -1,161 +1,169 @@
-// CoinGecko API Endpoints
-const PRICE_API_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd';
-const GLOBAL_API_URL = 'https://api.coingecko.com/api/v3/global';
-const HISTORICAL_API_URL = 'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7&interval=daily';
+const API_KEY = CONFIG.API_KEY;
+const BASE_URL = 'https://min-api.cryptocompare.com/data';
 
+let dominanceChart = null;
+let chartLabels = [];
+let chartPriceData = [];
+let chartDominanceData = []; // Added to track dominance over time
 
-// --- DOM Element References ---
-const btcPriceDisplay = document.getElementById('btc-price-display');
-const btcDominanceDisplay = document.getElementById('btc-dominance-display');
-const dominanceAlert = document.getElementById('dominance-alert');
-
-// --- Helper Function: Update Alert Box ---
-function updateDominanceAlert(dominance) {
-    if (!dominanceAlert) return;
-
-    // Reset classes
-    dominanceAlert.classList.remove('buy-altcoins', 'buy-bitcoin');
-
-    // Logic: If BTC Dominance is high (> 50%), it's "Bitcoin Season"
-    // If it's low (< 50%), it might be "Altcoin Season"
-    if (dominance > 50) {
-        dominanceAlert.textContent = "Bitcoin Dominance is high. Bitcoin is leading the market.";
-        dominanceAlert.classList.add('buy-bitcoin');
-    } else {
-        dominanceAlert.textContent = "Bitcoin Dominance is low. Money may be flowing into Altcoins!";
-        dominanceAlert.classList.add('buy-altcoins');
-    }
+/**
+ * INITIALIZATION
+ */
+async function initApp() {
+    await fetchHistoricalData(); 
+    await fetchLiveData();       
+    setInterval(fetchLiveData, 300000);
 }
 
-// --- Function: Fetch Bitcoin Price ---
-function fetchBitcoinPrice() {
-    fetch(PRICE_API_URL)
-    .then(function(response) {
-        if (!response.ok) throw new Error('Price API Error');
-        return response.json();
-    })
-    .then(function(data) {
-        const price = data.bitcoin.usd;
+/**
+ * FETCH 30D HISTORY
+ */
+async function fetchHistoricalData() {
+    try {
+        const response = await fetch(`${BASE_URL}/v2/histoday?fsym=BTC&tsym=USD&limit=30&api_key=${API_KEY}`);
+        const json = await response.json();
         
-        // FORMATTING: Using Intl.NumberFormat for $ and commas
-        const formattedPrice = new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            maximumFractionDigits: 0,
-        }).format(price);
+        if (json.Response === "Error") throw new Error(json.Message);
 
-        if (btcPriceDisplay) {
-            btcPriceDisplay.textContent = formattedPrice;
-        }
-        console.log('✅ Price displayed:', formattedPrice);
-    })
-    .catch(function(error) {
-        console.error("❌ Price Fetch Failed:", error);
-        if (btcPriceDisplay) btcPriceDisplay.textContent = "Error loading price";
-    });
-}
+        const history = json.Data.Data;
+        chartLabels = history.map(day => new Date(day.time * 1000).toLocaleDateString([], { month: 'short', day: 'numeric' }));
+        chartPriceData = history.map(day => day.close); 
+        
+        // Populate dummy dominance history so the line has points to start with
+        chartDominanceData = new Array(chartLabels.length).fill(null);
 
-// --- Function: Fetch Bitcoin Dominance ---
-function fetchBitcoinDominance() {
-    fetch(GLOBAL_API_URL)
-    .then(function(response) {
-        if (!response.ok) throw new Error('Global API Error');
-        return response.json();
-    })
-    .then(function(data) {
-        const dominance = data.data.market_cap_percentage.btc;
-        const formattedDominance = dominance.toFixed(2) + '%';
-
-        if (btcDominanceDisplay) {
-            btcDominanceDisplay.textContent = formattedDominance;
-        }
-
-        // TRIGGER ALERT: Update the alert box based on the raw number
-        updateDominanceAlert(dominance);
-
-        console.log('✅ Dominance displayed:', formattedDominance);
-    })
-    .catch(function(error) {
-        console.error("❌ Dominance Fetch Failed:", error);
-        if (btcDominanceDisplay) btcDominanceDisplay.textContent = "Error loading dominance";
-        if (dominanceAlert) dominanceAlert.textContent = "Could not calculate market state.";
-    });
-}
-
-// --- 1. GLOBAL VARIABLES ---
-let dominanceChart; // This stores our chart instance so we can update it later
-
-// --- 2. CHART UI FUNCTION ---
-function renderChart(labels, prices) {
-    const ctx = document.getElementById('dominanceChart').getContext('2d');
-    
-    // Safety check: destroy old chart instance if it exists
-    if (dominanceChart) {
-        dominanceChart.destroy();
+        renderChart(parseFloat(document.getElementById('threshold').value));
+    } catch (error) {
+        console.error("History Error:", error);
     }
+}
+
+/**
+ * LIVE FETCH & DOMINANCE CALCULATION
+ */
+async function fetchLiveData() {
+    const alertBox = document.getElementById('dominance-alert');
+    
+    try {
+        const response = await fetch(`${BASE_URL}/top/mktcapfull?limit=10&tsym=USD&api_key=${API_KEY}`);
+        const json = await response.json();
+        
+        if (!json.Data) throw new Error("Invalid API Response");
+
+        let btcPrice = 0;
+        let btcMarketCap = 0;
+        let totalMarketCapTop10 = 0;
+
+        json.Data.forEach((coin, index) => {
+            if (coin.RAW && coin.RAW.USD) {
+                const mktCap = coin.RAW.USD.MKTCAP;
+                totalMarketCapTop10 += mktCap;
+                if (index === 0) {
+                    btcPrice = coin.RAW.USD.PRICE;
+                    btcMarketCap = mktCap;
+                }
+            }
+        });
+
+        const btcDominance = (btcMarketCap / totalMarketCapTop10) * 100;
+
+        // CLEAN PRICE DISPLAY: Rounded to nearest $1
+        const cleanPrice = Math.round(btcPrice).toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+
+        // FIXED: Now using cleanPrice instead of btcPrice
+        document.getElementById('btc-price-display').textContent = `$${cleanPrice}`;
+        document.getElementById('btc-dominance-display').textContent = `${btcDominance.toFixed(2)}%`;
+
+        // Update real-time dominance point on the chart
+        chartDominanceData[chartDominanceData.length - 1] = btcDominance;
+
+        updateAlert(btcDominance);
+        renderChart(parseFloat(document.getElementById('threshold').value));
+
+    } catch (error) {
+        console.error("Live fetch failed:", error);
+        alertBox.textContent = "Data error. Please check your API Key.";
+    }
+}
+
+function updateAlert(dominance) {
+    const threshold = parseFloat(document.getElementById('threshold').value) || 50;
+    const alertBox = document.getElementById('dominance-alert');
+
+    if (dominance > threshold) {
+        alertBox.innerHTML = `🚨 <strong>SIGNAL: SELL ALTS / HOLD BTC</strong><br>BTC Dominance is above ${threshold}%.`;
+        alertBox.className = "alert-box btc-high";
+    } else {
+        alertBox.innerHTML = `🚀 <strong>SIGNAL: BUY ALTS</strong><br>BTC Dominance is below ${threshold}%.`;
+        alertBox.className = "alert-box btc-low";
+    }
+}
+
+/**
+ * UPDATED: Dual-Axis Rendering
+ */
+function renderChart(threshold) {
+    const ctx = document.getElementById('dominanceChart').getContext('2d');
+    if (dominanceChart) dominanceChart.destroy();
 
     dominanceChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels, 
-            datasets: [{
-                label: 'Bitcoin Price (USD) - Last 7 Days',
-                data: prices,
-                borderColor: '#3b82f6', 
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                fill: true,
-                tension: 0.4, 
-                pointRadius: 2
-            }]
+            labels: chartLabels,
+            datasets: [
+                {
+                    label: 'BTC Price (USD)',
+                    data: chartPriceData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    yAxisID: 'y', // Left axis
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Your Alert Threshold (%)',
+                    data: new Array(chartLabels.length).fill(threshold),
+                    borderColor: '#ef4444',
+                    borderDash: [5, 5],
+                    yAxisID: 'y1', // Right axis
+                    pointRadius: 0,
+                    fill: false
+                }
+            ]
         },
-        options: {
-            responsive: true,
+        options: { 
+            responsive: true, 
             maintainAspectRatio: false,
             scales: {
-                y: {
-                    ticks: {
-                        // This adds the $ sign back to the side of the chart
-                        callback: function(value) {
-                            return '$' + value.toLocaleString();
-                        }
-                    }
-                }
+                y: { 
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    grid: { color: '#334155' },
+                    ticks: { color: '#94a3b8' } 
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    min: 0,
+                    max: 100, // Dominance is 0-100%
+                    grid: { drawOnChartArea: false }, 
+                    ticks: { color: '#ef4444' }
+                },
+                x: { ticks: { color: '#94a3b8' } }
+            },
+            plugins: {
+                legend: { labels: { color: '#f8fafc' } }
             }
         }
     });
 }
 
-// --- 3. HISTORICAL DATA FETCH ---
-function fetchHistoricalData() {
-    console.log("Fetching historical chart data...");
-    
-    fetch(HISTORICAL_API_URL)
-    .then(response => {
-        if (!response.ok) throw new Error('History API Error');
-        return response.json();
-    })
-    .then(data => {
-        // data.prices is an array of [timestamp, price]
-        // We use .map() to create two new arrays: labels (dates) and prices
-        const labels = data.prices.map(item => {
-            const date = new Date(item[0]);
-            return date.toLocaleDateString('en-US', { weekday: 'short' }); 
-        });
-
-        const prices = data.prices.map(item => item[1]);
-
-        renderChart(labels, prices);
-        console.log("✅ Chart rendered with historical data.");
-    })
-    .catch(error => {
-        console.error("❌ History Fetch Failed:", error);
-    });
-}
-
-
-// Calling the functions
-document.addEventListener('DOMContentLoaded', function() {
-    fetchBitcoinPrice();
-    fetchBitcoinDominance();
-    fetchHistoricalData();
+document.addEventListener('DOMContentLoaded', initApp);
+document.getElementById('update-alert-btn').addEventListener('click', () => {
+    fetchLiveData(); 
 });
