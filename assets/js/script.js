@@ -4,7 +4,7 @@ const BASE_URL = 'https://min-api.cryptocompare.com/data';
 let dominanceChart = null;
 let chartLabels = [];
 let chartPriceData = [];
-let chartDominanceData = []; // Added to track dominance over time
+let chartDominanceData = []; 
 
 /**
  * INITIALIZATION
@@ -29,7 +29,6 @@ async function fetchHistoricalData() {
         chartLabels = history.map(day => new Date(day.time * 1000).toLocaleDateString([], { month: 'short', day: 'numeric' }));
         chartPriceData = history.map(day => day.close); 
         
-        // Populate dummy dominance history so the line has points to start with
         chartDominanceData = new Array(chartLabels.length).fill(null);
 
         renderChart(parseFloat(document.getElementById('threshold').value));
@@ -67,18 +66,17 @@ async function fetchLiveData() {
 
         const btcDominance = (btcMarketCap / totalMarketCapTop10) * 100;
 
-        // CLEAN PRICE DISPLAY: Rounded to nearest $1
         const cleanPrice = Math.round(btcPrice).toLocaleString(undefined, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         });
 
-        // FIXED: Now using cleanPrice instead of btcPrice
         document.getElementById('btc-price-display').textContent = `$${cleanPrice}`;
         document.getElementById('btc-dominance-display').textContent = `${btcDominance.toFixed(2)}%`;
 
-        // Update real-time dominance point on the chart
-        chartDominanceData[chartDominanceData.length - 1] = btcDominance;
+        if (chartDominanceData.length > 0) {
+            chartDominanceData[chartDominanceData.length - 1] = btcDominance;
+        }
 
         updateAlert(btcDominance);
         renderChart(parseFloat(document.getElementById('threshold').value));
@@ -103,7 +101,7 @@ function updateAlert(dominance) {
 }
 
 /**
- * UPDATED: Dual-Axis Rendering
+ * RENDER CHART
  */
 function renderChart(threshold) {
     const ctx = document.getElementById('dominanceChart').getContext('2d');
@@ -119,7 +117,7 @@ function renderChart(threshold) {
                     data: chartPriceData,
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    yAxisID: 'y', // Left axis
+                    yAxisID: 'y', 
                     fill: true,
                     tension: 0.3
                 },
@@ -128,7 +126,7 @@ function renderChart(threshold) {
                     data: new Array(chartLabels.length).fill(threshold),
                     borderColor: '#ef4444',
                     borderDash: [5, 5],
-                    yAxisID: 'y1', // Right axis
+                    yAxisID: 'y1', 
                     pointRadius: 0,
                     fill: false
                 }
@@ -150,7 +148,7 @@ function renderChart(threshold) {
                     display: true,
                     position: 'right',
                     min: 0,
-                    max: 100, // Dominance is 0-100%
+                    max: 100, 
                     grid: { drawOnChartArea: false }, 
                     ticks: { color: '#ef4444' }
                 },

@@ -6,8 +6,8 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #0f172a; /* Deep Navy Dark Mode */
+    font-family: 'Inter', sans-serif;
+    background-color: #0f172a;
     color: #f8fafc;
     display: flex;
     flex-direction: column;
@@ -16,54 +16,47 @@ body {
     min-height: 100vh;
 }
 
+main {
+    width: 100%;
+    max-width: 1100px; 
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 header h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
+    font-size: 2.2rem;
     color: #3b82f6;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     text-align: center;
 }
 
-/* Widened Layout Containers */
 #stats-container {
     display: flex;
-    gap: 24px;
+    gap: 20px;
     width: 100%;
-    max-width: 1200px; 
-    margin-bottom: 30px;
 }
 
 .card {
     background: #1e293b;
     flex: 1;
-    padding: 30px;
-    border-radius: 16px;
+    padding: 25px;
+    border-radius: 12px;
     border: 1px solid #334155;
     text-align: center;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.card h3 {
-    font-size: 0.9rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
 }
 
 #btc-price-display, #btc-dominance-display {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 700;
-    color: #ffffff;
 }
 
-/* Interactive Controls */
 #controls {
     background: #1e293b;
-    padding: 15px 30px;
-    border-radius: 50px;
-    margin-bottom: 30px;
+    padding: 15px;
+    border-radius: 12px;
     display: flex;
+    justify-content: center;
     align-items: center;
     gap: 15px;
     border: 1px solid #334155;
@@ -71,60 +64,45 @@ header h1 {
 
 input {
     background: #0f172a;
-    border: 1px solid #334155;
+    border: 1px solid #475569;
     color: white;
-    padding: 10px;
-    border-radius: 8px;
-    width: 80px;
-    font-size: 1rem;
-    text-align: center;
+    padding: 8px;
+    border-radius: 6px;
+    width: 70px;
 }
 
 button {
     background: #3b82f6;
     color: white;
     border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
+    padding: 10px 20px;
+    border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
 }
 
-button:hover {
-    background: #2563eb;
-}
-
-/* Responsive Alert Box */
 .alert-box {
-    width: 100%;
-    max-width: 1200px;
-    padding: 20px;
-    border-radius: 12px;
+    padding: 15px;
+    border-radius: 8px;
     text-align: center;
     font-weight: 600;
-    font-size: 1.1rem;
-    margin-bottom: 30px;
-    border: 1px solid transparent;
 }
 
-.btc-high { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: #10b981; }
-.btc-low { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: #3b82f6; }
+.btc-high { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid #10b981; }
+.btc-low { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid #3b82f6; }
 
-/* Expanded Chart Container */
 .chart-container {
     width: 100%;
-    max-width: 1200px;
     background: #1e293b;
-    padding: 30px;
-    border-radius: 16px;
+    padding: 20px;
+    border-radius: 12px;
     border: 1px solid #334155;
-    height: 500px;
+    height: 500px; 
+    min-height: 400px;
+    position: relative;
 }
 
-/* Tablet/Mobile Adjustments (Requirement #6) */
 @media (max-width: 768px) {
     #stats-container { flex-direction: column; }
-    header h1 { font-size: 1.8rem; }
-    #controls { flex-direction: column; border-radius: 16px; width: 100%; }
+    #controls { flex-direction: column; }
 }
